@@ -23,6 +23,14 @@ ruleTester.run("go-indent", rule, {
             name: "single-line object expression is exempt",
             code: "const point = { x: 1, y: 2 };",
         },
+        {
+            name: "class declaration indented with one tab per level",
+            code: "class Server {\n\tstart() {}\n}",
+        },
+        {
+            name: "class expression indented with one tab per level",
+            code: "const Server = class {\n\tstart() {}\n};",
+        },
     ],
     invalid: [
         {
@@ -48,6 +56,12 @@ ruleTester.run("go-indent", rule, {
             code: "const config = {\n\tport: 8080,\n\t};",
             output: "const config = {\n\tport: 8080,\n};",
             errors: [{ messageId: "wrongIndentation", data: { expected: "0" } }],
+        },
+        {
+            name: "class body indented with spaces instead of tabs",
+            code: "class Server {\n  start() {}\n}",
+            output: "class Server {\n\tstart() {}\n}",
+            errors: [{ messageId: "wrongIndentation", data: { expected: "1" } }],
         },
     ],
 });

@@ -3,7 +3,7 @@ import type { TSESTree } from "@typescript-eslint/utils";
 
 type MessageIds = "wrongIndentation";
 
-type IndentedContainer = TSESTree.ObjectExpression;
+type IndentedContainer = TSESTree.ObjectExpression | TSESTree.ClassBody;
 
 const createRule = ESLintUtils.RuleCreator(
     (name) => `https://github.com/eslint-plugin-go-indent/rules/${name}`,
@@ -13,6 +13,8 @@ function getMembers(node: IndentedContainer): TSESTree.Node[] {
     switch (node.type) {
         case "ObjectExpression":
             return node.properties;
+        case "ClassBody":
+            return node.body;
     }
 }
 
@@ -110,6 +112,7 @@ const rule = createRule<[], MessageIds>({
 
         return {
             ObjectExpression: checkContainer,
+            ClassBody: checkContainer,
         };
     },
 });
