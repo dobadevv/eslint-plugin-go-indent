@@ -128,20 +128,3 @@ type User = {
 
 That keeps the aligned block stable across both `eslint --fix` and
 `prettier --write`.
-
-## Development
-
-```sh
-pnpm install
-pnpm test    # vitest
-pnpm build   # tsc -p .
-```
-
-## Releasing
-
-```sh
-pnpm release patch   # or: minor | major
-```
-
-This bumps the version, commits and tags it (`vX.Y.Z`), pushes the tag, and
-publishes to npm. See [`scripts/release.sh`](./scripts/release.sh).
