@@ -39,6 +39,10 @@ ruleTester.run("go-indent", rule, {
             name: "type alias with object literal indented with one tab per level",
             code: "type Config = {\n\tport: number;\n\thost: string;\n};",
         },
+        {
+            name: "two properties on the same line are skipped, not reported",
+            code: 'const config = {\n\tport: 8080, host: "localhost",\n};',
+        },
     ],
     invalid: [
         {
@@ -82,6 +86,18 @@ ruleTester.run("go-indent", rule, {
             code: "type Config = {\n  port: number;\n};",
             output: "type Config = {\n\tport: number;\n};",
             errors: [{ messageId: "wrongIndentation", data: { expected: "1" } }],
+        },
+        {
+            name: "nested object expression inside a class field checked independently",
+            code: "class Server {\n\tconfig = {\n  port: 8080,\n\t};\n}",
+            output: "class Server {\n\tconfig = {\n\t\tport: 8080,\n\t};\n}",
+            errors: [{ messageId: "wrongIndentation", data: { expected: "2" } }],
+        },
+        {
+            name: "nested type literal checked independently",
+            code: "type Routes = {\n\thealth: {\n  status: string;\n\t};\n};",
+            output: "type Routes = {\n\thealth: {\n\t\tstatus: string;\n\t};\n};",
+            errors: [{ messageId: "wrongIndentation", data: { expected: "2" } }],
         },
     ],
 });
