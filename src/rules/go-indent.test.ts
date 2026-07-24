@@ -6,6 +6,8 @@ import rule, {
     splitMemberCells,
     splitIntoRuns,
     isConformingMember,
+    computeColumnWidths,
+    renderAligned,
 } from "./go-indent.js";
 
 RuleTester.describe = describe;
@@ -28,8 +30,25 @@ ruleTester.run("go-indent", rule, {
             name: "already-aligned type alias run",
             code: "type User = {\n\tid:       string;\n\tusername: string;\n};",
         },
+        {
+            name: "aligned interface run is valid",
+            code: "interface Config {\n\tport:     number;\n\thostname: string;\n}",
+        },
     ],
-    invalid: [],
+    invalid: [
+        {
+            name: "misaligned type alias run is fixed",
+            code: "type User = {\n\tid: string;\n\tusername: string;\n};",
+            output: "type User = {\n\tid:       string;\n\tusername: string;\n};",
+            errors: [{ messageId: "misalignedColumn" }],
+        },
+        {
+            name: "misaligned object literal run is fixed",
+            code: "const c = {\n\ta: 1,\n\tbbb: 2,\n};",
+            output: "const c = {\n\ta:   1,\n\tbbb: 2,\n};",
+            errors: [{ messageId: "misalignedColumn" }],
+        },
+    ],
 });
 
 describe("splitMemberCells", () => {
@@ -157,5 +176,42 @@ describe("splitIntoRuns", () => {
             ...noComments,
         };
         expect(splitIntoRuns([a, method, c], source)).toEqual([[a], [c]]);
+    });
+});
+
+describe("computeColumnWidths", () => {
+    it("takes the max cell width per boundary from rows with a following cell", () => {
+        const rows = [
+            splitMemberCells("id: string;"),
+            splitMemberCells("username: string;"),
+        ];
+        expect(computeColumnWidths(rows)).toEqual(["username".length]);
+    });
+
+    it("ignores a bare field with no following cell", () => {
+        const rows = [
+            splitMemberCells("reallyLongName;"),
+            splitMemberCells("a: string;"),
+        ];
+        expect(computeColumnWidths(rows)).toEqual(["a".length]);
+    });
+});
+
+describe("renderAligned", () => {
+    it("pads the name column so values line up", () => {
+        const widths = ["username".length];
+        expect(renderAligned(splitMemberCells("id: string;"), widths)).toBe(
+            "id:       string;",
+        );
+        expect(
+            renderAligned(splitMemberCells("username: string;"), widths),
+        ).toBe("username: string;");
+    });
+
+    it("never pads the final cell (no trailing whitespace)", () => {
+        const widths = ["longer".length];
+        expect(renderAligned(splitMemberCells("a: X;"), widths)).toBe(
+            "a:      X;",
+        );
     });
 });

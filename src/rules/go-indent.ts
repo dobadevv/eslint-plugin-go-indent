@@ -157,6 +157,37 @@ export function splitIntoRuns(
     return runs;
 }
 
+export function computeColumnWidths(rows: MemberCells[]): number[] {
+    let maxColumns = 0;
+    for (const row of rows) {
+        maxColumns = Math.max(maxColumns, row.cells.length);
+    }
+    const boundaryCount = Math.max(0, maxColumns - 1);
+    const widths = new Array<number>(boundaryCount).fill(0);
+    for (const row of rows) {
+        for (let i = 0; i < boundaryCount; i++) {
+            const hasFollowingCell = row.cells.length > i + 1;
+            const cell = row.cells[i];
+            if (hasFollowingCell && cell !== undefined) {
+                widths[i] = Math.max(widths[i] ?? 0, cell.length);
+            }
+        }
+    }
+    return widths;
+}
+
+export function renderAligned(row: MemberCells, widths: number[]): string {
+    let result = "";
+    for (let i = 0; i < row.cells.length - 1; i++) {
+        const cell = row.cells[i] ?? "";
+        const separator = row.separators[i] ?? "";
+        const width = widths[i] ?? cell.length;
+        result += (cell + separator).padEnd(width + 1) + " ";
+    }
+    result += row.cells[row.cells.length - 1] ?? "";
+    return result;
+}
+
 function getMembers(node: AlignableBody): TSESTree.Node[] {
     switch (node.type) {
         case "ObjectExpression":
@@ -190,9 +221,41 @@ const rule = createRule<[], MessageIds>({
         },
     },
     defaultOptions: [],
-    create() {
-        function checkBody(_node: AlignableBody): void {
-            // Alignment logic added in later tasks.
+    create(context) {
+        const sourceCode = context.sourceCode;
+
+        function checkRun(run: TSESTree.Node[]): void {
+            if (run.length < 2) {
+                return;
+            }
+            const rows = run.map((member) =>
+                splitMemberCells(sourceCode.getText(member)),
+            );
+            const widths = computeColumnWidths(rows);
+            run.forEach((member, index) => {
+                const row = rows[index];
+                if (row === undefined) {
+                    return;
+                }
+                const actual = sourceCode.getText(member);
+                const expected = renderAligned(row, widths);
+                if (actual === expected) {
+                    return;
+                }
+                context.report({
+                    node: member,
+                    messageId: "misalignedColumn",
+                    fix(fixer) {
+                        return fixer.replaceText(member, expected);
+                    },
+                });
+            });
+        }
+
+        function checkBody(node: AlignableBody): void {
+            for (const run of splitIntoRuns(getMembers(node), sourceCode)) {
+                checkRun(run);
+            }
         }
 
         return {
