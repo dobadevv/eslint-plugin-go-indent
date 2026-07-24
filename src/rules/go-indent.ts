@@ -1,5 +1,5 @@
 import { ESLintUtils } from "@typescript-eslint/utils";
-import type { TSESTree } from "@typescript-eslint/utils";
+import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
 type MessageIds = "misalignedColumn";
 
@@ -200,6 +200,42 @@ export function renderAligned(row: MemberCells, widths: number[]): string {
     return result;
 }
 
+const STATEMENT_CONTAINER_TYPES = new Set([
+    "Program",
+    "BlockStatement",
+    "StaticBlock",
+    "TSModuleBlock",
+    "SwitchCase",
+]);
+
+function findPrettierIgnoreTarget(
+    node: TSESTree.Node,
+    ancestors: TSESTree.Node[],
+): TSESTree.Node {
+    let target = node;
+    for (let i = ancestors.length - 1; i >= 0; i--) {
+        const ancestor = ancestors[i];
+        if (ancestor === undefined) {
+            break;
+        }
+        if (STATEMENT_CONTAINER_TYPES.has(ancestor.type)) {
+            break;
+        }
+        target = ancestor;
+    }
+    return target;
+}
+
+function hasPrettierIgnoreComment(
+    target: TSESTree.Node,
+    sourceCode: SourceCodeLike,
+): boolean {
+    const comments = sourceCode.getCommentsBefore(target) as {
+        value: string;
+    }[];
+    return comments.some((comment) => comment.value.trim() === "prettier-ignore");
+}
+
 function getMembers(node: AlignableBody): TSESTree.Node[] {
     switch (node.type) {
         case "ObjectExpression":
@@ -236,7 +272,12 @@ const rule = createRule<[], MessageIds>({
     create(context) {
         const sourceCode = context.sourceCode;
 
-        function checkRun(run: TSESTree.Node[]): void {
+        function checkRun(
+            run: TSESTree.Node[],
+            takePrettierIgnoreFix: (
+                fixer: TSESLint.RuleFixer,
+            ) => TSESLint.RuleFix | null,
+        ): void {
             if (run.length < 2) {
                 return;
             }
@@ -258,15 +299,44 @@ const rule = createRule<[], MessageIds>({
                     node: member,
                     messageId: "misalignedColumn",
                     fix(fixer) {
-                        return fixer.replaceText(member, expected);
+                        const fixes = [fixer.replaceText(member, expected)];
+                        const prettierIgnoreFix = takePrettierIgnoreFix(fixer);
+                        if (prettierIgnoreFix !== null) {
+                            fixes.push(prettierIgnoreFix);
+                        }
+                        return fixes;
                     },
                 });
             });
         }
 
         function checkBody(node: AlignableBody): void {
+            const target = findPrettierIgnoreTarget(
+                node,
+                sourceCode.getAncestors(node),
+            );
+            let prettierIgnoreFixPending = !hasPrettierIgnoreComment(
+                target,
+                sourceCode,
+            );
+
+            function takePrettierIgnoreFix(
+                fixer: TSESLint.RuleFixer,
+            ): TSESLint.RuleFix | null {
+                if (!prettierIgnoreFixPending) {
+                    return null;
+                }
+                prettierIgnoreFixPending = false;
+                const line = sourceCode.lines[target.loc.start.line - 1] ?? "";
+                const indent = line.slice(0, target.loc.start.column);
+                return fixer.insertTextBefore(
+                    target,
+                    `// prettier-ignore\n${indent}`,
+                );
+            }
+
             for (const run of splitIntoRuns(getMembers(node), sourceCode)) {
-                checkRun(run);
+                checkRun(run, takePrettierIgnoreFix);
             }
         }
 

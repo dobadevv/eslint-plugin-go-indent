@@ -55,13 +55,15 @@ ruleTester.run("go-indent", rule, {
         {
             name: "misaligned type alias run is fixed",
             code: "type User = {\n\tid: string;\n\tusername: string;\n};",
-            output: "type User = {\n\tid:       string;\n\tusername: string;\n};",
+            output:
+                "// prettier-ignore\ntype User = {\n\tid:       string;\n\tusername: string;\n};",
             errors: [{ messageId: "misalignedColumn" }],
         },
         {
             name: "misaligned object literal run is fixed",
             code: "const c = {\n\ta: 1,\n\tbbb: 2,\n};",
-            output: "const c = {\n\ta:   1,\n\tbbb: 2,\n};",
+            output:
+                "// prettier-ignore\nconst c = {\n\ta:   1,\n\tbbb: 2,\n};",
             errors: [{ messageId: "misalignedColumn" }],
         },
         {
@@ -75,6 +77,7 @@ ruleTester.run("go-indent", rule, {
                 "\tdddd: number;\n" +
                 "};",
             output:
+                "// prettier-ignore\n" +
                 "type T = {\n" +
                 "\ta:  number;\n" +
                 "\tbb: number;\n" +
@@ -98,6 +101,7 @@ ruleTester.run("go-indent", rule, {
                 "\tdddd: number;\n" +
                 "}",
             output:
+                "// prettier-ignore\n" +
                 "interface I {\n" +
                 "\ta:  number;\n" +
                 "\tbb: number;\n" +
@@ -121,6 +125,7 @@ ruleTester.run("go-indent", rule, {
                 "\tdddd: number;\n" +
                 "}",
             output:
+                "// prettier-ignore\n" +
                 "class C {\n" +
                 "\ta:  number;\n" +
                 "\tbb: number;\n" +
@@ -143,6 +148,7 @@ ruleTester.run("go-indent", rule, {
                 "\tsize: number = 10;\n" +
                 "}",
             output:
+                "// prettier-ignore\n" +
                 "class C {\n" +
                 "\tflag;\n" +
                 "\tcount = 0;\n" +
@@ -164,6 +170,7 @@ ruleTester.run("go-indent", rule, {
                 "\tsecond_size: number = 10;\n" +
                 "}",
             output:
+                "// prettier-ignore\n" +
                 "class Mixed {\n" +
                 "\tcount        = 0;\n" +
                 "\tsecond_count = 0;\n" +
@@ -175,6 +182,59 @@ ruleTester.run("go-indent", rule, {
                 { messageId: "misalignedColumn" },
                 { messageId: "misalignedColumn" },
             ],
+        },
+        {
+            name: "misaligned class run gets a // prettier-ignore comment above the class declaration",
+            code: "class C {\n\ta: number;\n\tbb: number;\n}",
+            output:
+                "// prettier-ignore\nclass C {\n\ta:  number;\n\tbb: number;\n}",
+            errors: [{ messageId: "misalignedColumn" }],
+        },
+        {
+            name: "multiple errors in one body only get one // prettier-ignore comment",
+            code:
+                "interface J {\n" +
+                "\ta: number;\n" +
+                "\tbb: number;\n" +
+                "\n" +
+                "\tccc: number;\n" +
+                "\tdddd: number;\n" +
+                "}",
+            output:
+                "// prettier-ignore\n" +
+                "interface J {\n" +
+                "\ta:  number;\n" +
+                "\tbb: number;\n" +
+                "\n" +
+                "\tccc:  number;\n" +
+                "\tdddd: number;\n" +
+                "}",
+            errors: [
+                { messageId: "misalignedColumn" },
+                { messageId: "misalignedColumn" },
+            ],
+        },
+        {
+            name: "exported class gets the comment above the export, not between export and class",
+            code: "export class C {\n\ta: number;\n\tbb: number;\n}",
+            output:
+                "// prettier-ignore\nexport class C {\n\ta:  number;\n\tbb: number;\n}",
+            errors: [{ messageId: "misalignedColumn" }],
+        },
+        {
+            name: "object literal nested in a call argument gets the comment above the whole statement",
+            code: "foo({\n\ta: 1,\n\tbb: 2,\n});",
+            output:
+                "// prettier-ignore\nfoo({\n\ta:  1,\n\tbb: 2,\n});",
+            errors: [{ messageId: "misalignedColumn" }],
+        },
+        {
+            name: "an existing // prettier-ignore comment is not duplicated",
+            code:
+                "// prettier-ignore\nclass C {\n\ta: number;\n\tbb: number;\n}",
+            output:
+                "// prettier-ignore\nclass C {\n\ta:  number;\n\tbb: number;\n}",
+            errors: [{ messageId: "misalignedColumn" }],
         },
         {
             name: "optional field's type column stays aligned with a sibling field that has a default value",
@@ -190,6 +250,7 @@ ruleTester.run("go-indent", rule, {
                 "\trole: string = 'member';\n" +
                 "}",
             output:
+                "// prettier-ignore\n" +
                 "class CreateUserDto {\n" +
                 "\tid:           string;\n" +
                 "\tusername:     string;\n" +
