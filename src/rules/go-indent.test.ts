@@ -128,6 +128,28 @@ ruleTester.run("go-indent", rule, {
                 { messageId: "misalignedColumn" },
             ],
         },
+        {
+            name: "class run mixing bare, initializer, typed, and typed+initializer fields",
+            code:
+                "class C {\n" +
+                "\tflag;\n" +
+                "\tcount = 0;\n" +
+                "\tid: string;\n" +
+                "\tsize: number = 10;\n" +
+                "}",
+            output:
+                "class C {\n" +
+                "\tflag;\n" +
+                "\tcount= 0;\n" +
+                "\tid:    string;\n" +
+                "\tsize:  number= 10;\n" +
+                "}",
+            errors: [
+                { messageId: "misalignedColumn" },
+                { messageId: "misalignedColumn" },
+                { messageId: "misalignedColumn" },
+            ],
+        },
     ],
 });
 
