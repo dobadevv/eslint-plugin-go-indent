@@ -271,6 +271,32 @@ ruleTester.run("go-fmt", rule, {
                 { messageId: "misalignedColumn" },
             ],
         },
+        {
+            name: "a nested object literal's run is fully aligned in the same pass as the outer run",
+            code:
+                "const obj = {\n" +
+                "\ta: 1,\n" +
+                "\tbb: 2,\n" +
+                "\tnested: {\n" +
+                "\t\tx: 1,\n" +
+                "\t\tyy: 2,\n" +
+                "\t},\n" +
+                "};",
+            output:
+                "// prettier-ignore\n" +
+                "const obj = {\n" +
+                "\ta:  1,\n" +
+                "\tbb: 2,\n" +
+                "\tnested: {\n" +
+                "\t\tx:  1,\n" +
+                "\t\tyy: 2,\n" +
+                "\t},\n" +
+                "};",
+            errors: [
+                { messageId: "misalignedColumn" },
+                { messageId: "misalignedColumn" },
+            ],
+        },
     ],
 });
 

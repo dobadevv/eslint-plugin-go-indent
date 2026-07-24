@@ -271,6 +271,7 @@ const rule = createRule<[], MessageIds>({
     defaultOptions: [],
     create(context) {
         const sourceCode = context.sourceCode;
+        const pendingPrettierIgnoreByTarget = new Map<TSESTree.Node, boolean>();
 
         function checkRun(
             run: TSESTree.Node[],
@@ -315,18 +316,20 @@ const rule = createRule<[], MessageIds>({
                 node,
                 sourceCode.getAncestors(node),
             );
-            let prettierIgnoreFixPending = !hasPrettierIgnoreComment(
-                target,
-                sourceCode,
-            );
+            if (!pendingPrettierIgnoreByTarget.has(target)) {
+                pendingPrettierIgnoreByTarget.set(
+                    target,
+                    !hasPrettierIgnoreComment(target, sourceCode),
+                );
+            }
 
             function takePrettierIgnoreFix(
                 fixer: TSESLint.RuleFixer,
             ): TSESLint.RuleFix | null {
-                if (!prettierIgnoreFixPending) {
+                if (!pendingPrettierIgnoreByTarget.get(target)) {
                     return null;
                 }
-                prettierIgnoreFixPending = false;
+                pendingPrettierIgnoreByTarget.set(target, false);
                 const line = sourceCode.lines[target.loc.start.line - 1] ?? "";
                 const indent = line.slice(0, target.loc.start.column);
                 return fixer.insertTextBefore(
