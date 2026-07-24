@@ -1,7 +1,12 @@
 import { RuleTester } from "eslint";
 import { describe, it, expect } from "vitest";
 import tsParser from "@typescript-eslint/parser";
-import rule, { splitMemberCells } from "./go-indent.js";
+import type { TSESTree } from "@typescript-eslint/utils";
+import rule, {
+    splitMemberCells,
+    splitIntoRuns,
+    isConformingMember,
+} from "./go-indent.js";
 
 RuleTester.describe = describe;
 RuleTester.it = it;
@@ -60,5 +65,97 @@ describe("splitMemberCells", () => {
             "base;",
         ]);
         expect(result.separators).toEqual([":", "="]);
+    });
+});
+
+function fakeMember(
+    startLine: number,
+    endLine: number,
+    extra: Record<string, unknown> = {},
+): TSESTree.Node {
+    return {
+        type: "PropertyDefinition",
+        computed: false,
+        loc: {
+            start: { line: startLine, column: 0 },
+            end: { line: endLine, column: 0 },
+        },
+        ...extra,
+    } as unknown as TSESTree.Node;
+}
+
+describe("isConformingMember", () => {
+    it("treats a single-line simple field as conforming", () => {
+        expect(isConformingMember(fakeMember(1, 1))).toBe(true);
+    });
+
+    it("treats a multi-line member as non-conforming", () => {
+        expect(isConformingMember(fakeMember(1, 3))).toBe(false);
+    });
+
+    it("treats a computed-key member as non-conforming", () => {
+        expect(isConformingMember(fakeMember(1, 1, { computed: true }))).toBe(
+            false,
+        );
+    });
+
+    it("treats a method definition as non-conforming", () => {
+        const method = {
+            type: "MethodDefinition",
+            computed: false,
+            loc: {
+                start: { line: 1, column: 0 },
+                end: { line: 1, column: 0 },
+            },
+        } as unknown as TSESTree.Node;
+        expect(isConformingMember(method)).toBe(false);
+    });
+});
+
+describe("splitIntoRuns", () => {
+    const noComments = { getCommentsBefore: () => [] };
+
+    it("groups contiguous conforming members into one run", () => {
+        const a = fakeMember(2, 2);
+        const b = fakeMember(3, 3);
+        const source = {
+            lines: ["type X = {", "\ta: string;", "\tb: string;", "};"],
+            ...noComments,
+        };
+        expect(splitIntoRuns([a, b], source)).toEqual([[a, b]]);
+    });
+
+    it("splits a run at a blank line", () => {
+        const a = fakeMember(2, 2);
+        const b = fakeMember(4, 4);
+        const source = {
+            lines: ["type X = {", "\ta: string;", "", "\tb: string;", "};"],
+            ...noComments,
+        };
+        expect(splitIntoRuns([a, b], source)).toEqual([[a], [b]]);
+    });
+
+    it("splits a run at a comment line and drops non-conforming members", () => {
+        const a = fakeMember(2, 2);
+        const method = {
+            type: "MethodDefinition",
+            computed: false,
+            loc: {
+                start: { line: 3, column: 0 },
+                end: { line: 3, column: 0 },
+            },
+        } as unknown as TSESTree.Node;
+        const c = fakeMember(4, 4);
+        const source = {
+            lines: [
+                "type X = {",
+                "\ta: string;",
+                "\tm() {}",
+                "\tc: string;",
+                "};",
+            ],
+            ...noComments,
+        };
+        expect(splitIntoRuns([a, method, c], source)).toEqual([[a], [c]]);
     });
 });

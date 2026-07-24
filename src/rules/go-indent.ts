@@ -48,6 +48,115 @@ export function splitMemberCells(text: string): MemberCells {
     return { cells, separators };
 }
 
+export type SourceCodeLike = {
+    lines: string[];
+    getCommentsBefore(node: TSESTree.Node): unknown[];
+};
+
+const METHOD_NODE_TYPES = new Set([
+    "MethodDefinition",
+    "TSMethodSignature",
+    "TSCallSignatureDeclaration",
+    "TSConstructSignatureDeclaration",
+]);
+
+const NON_CONFORMING_NODE_TYPES = new Set([
+    ...METHOD_NODE_TYPES,
+    "SpreadElement",
+    "TSIndexSignature",
+]);
+
+function isFunctionValued(member: TSESTree.Node): boolean {
+    const value = (member as { value?: { type?: string } }).value;
+    return (
+        value?.type === "FunctionExpression" ||
+        value?.type === "ArrowFunctionExpression"
+    );
+}
+
+export function isConformingMember(member: TSESTree.Node): boolean {
+    if (member.loc.start.line !== member.loc.end.line) {
+        return false;
+    }
+    if (NON_CONFORMING_NODE_TYPES.has(member.type)) {
+        return false;
+    }
+    if ((member as { computed?: boolean }).computed === true) {
+        return false;
+    }
+    if ((member as { method?: boolean }).method === true) {
+        return false;
+    }
+    if (isFunctionValued(member)) {
+        return false;
+    }
+    return true;
+}
+
+function hasBlankLineBetween(
+    earlier: TSESTree.Node,
+    later: TSESTree.Node,
+    sourceCode: SourceCodeLike,
+): boolean {
+    for (
+        let line = earlier.loc.end.line + 1;
+        line < later.loc.start.line;
+        line++
+    ) {
+        if ((sourceCode.lines[line - 1] ?? "").trim() === "") {
+            return true;
+        }
+    }
+    return false;
+}
+
+function hasCommentLineBetween(
+    earlier: TSESTree.Node,
+    later: TSESTree.Node,
+    sourceCode: SourceCodeLike,
+): boolean {
+    const comments = sourceCode.getCommentsBefore(later) as {
+        loc: { start: { line: number } };
+    }[];
+    return comments.some(
+        (comment) => comment.loc.start.line > earlier.loc.end.line,
+    );
+}
+
+export function splitIntoRuns(
+    members: TSESTree.Node[],
+    sourceCode: SourceCodeLike,
+): TSESTree.Node[][] {
+    const runs: TSESTree.Node[][] = [];
+    let current: TSESTree.Node[] = [];
+
+    function flush(): void {
+        if (current.length > 0) {
+            runs.push(current);
+            current = [];
+        }
+    }
+
+    for (const member of members) {
+        if (!isConformingMember(member)) {
+            flush();
+            continue;
+        }
+        const previous = current[current.length - 1];
+        if (
+            previous !== undefined &&
+            (hasBlankLineBetween(previous, member, sourceCode) ||
+                hasCommentLineBetween(previous, member, sourceCode))
+        ) {
+            flush();
+        }
+        current.push(member);
+    }
+    flush();
+
+    return runs;
+}
+
 function getMembers(node: AlignableBody): TSESTree.Node[] {
     switch (node.type) {
         case "ObjectExpression":
