@@ -145,9 +145,27 @@ ruleTester.run("go-indent", rule, {
             output:
                 "class C {\n" +
                 "\tflag;\n" +
-                "\tcount= 0;\n" +
+                "\tcount = 0;\n" +
                 "\tid:    string;\n" +
-                "\tsize:  number= 10;\n" +
+                "\tsize: number = 10;\n" +
+                "}",
+            errors: [{ messageId: "misalignedColumn" }],
+        },
+        {
+            name: "= separator gets its own padded column, not glued to the preceding cell",
+            code:
+                "class Mixed {\n" +
+                "\tcount = 0;\n" +
+                "\tsecond_count = 0;\n" +
+                "\tsize: boolean = true;\n" +
+                "\tsecond_size: number = 10;\n" +
+                "}",
+            output:
+                "class Mixed {\n" +
+                "\tcount        = 0;\n" +
+                "\tsecond_count = 0;\n" +
+                "\tsize:        boolean = true;\n" +
+                "\tsecond_size: number  = 10;\n" +
                 "}",
             errors: [
                 { messageId: "misalignedColumn" },
@@ -331,5 +349,28 @@ describe("renderAligned", () => {
         expect(renderAligned(splitMemberCells("a: X;"), widths)).toBe(
             "a:      X;",
         );
+    });
+
+    it("pads the = separator as its own column instead of gluing it to the name", () => {
+        const widths = ["second_count".length];
+        expect(renderAligned(splitMemberCells("count = 0;"), widths)).toBe(
+            "count        = 0;",
+        );
+        expect(
+            renderAligned(splitMemberCells("second_count = 0;"), widths),
+        ).toBe("second_count = 0;");
+    });
+
+    it("pads a typed field's = separator using the value-column width", () => {
+        const widths = ["second_count".length, "boolean".length];
+        expect(
+            renderAligned(splitMemberCells("size: boolean = true;"), widths),
+        ).toBe("size:        boolean = true;");
+        expect(
+            renderAligned(
+                splitMemberCells("second_size: number = 10;"),
+                widths,
+            ),
+        ).toBe("second_size: number  = 10;");
     });
 });

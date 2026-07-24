@@ -186,11 +186,18 @@ export function computeColumnWidths(rows: MemberCells[]): number[] {
 
 export function renderAligned(row: MemberCells, widths: number[]): string {
     let result = "";
+    const lastBoundaryIndex = row.cells.length - 2;
     for (let i = 0; i < row.cells.length - 1; i++) {
         const cell = row.cells[i] ?? "";
         const separator = row.separators[i] ?? "";
         const width = widths[i] ?? cell.length;
-        result += (cell + separator).padEnd(width + 1) + " ";
+        if (separator === "=") {
+            result += cell.padEnd(width) + " = ";
+        } else if (i === lastBoundaryIndex) {
+            result += (cell + separator).padEnd(width + 1) + " ";
+        } else {
+            result += (cell + separator).padEnd(width + 1);
+        }
     }
     result += row.cells[row.cells.length - 1] ?? "";
     return result;
