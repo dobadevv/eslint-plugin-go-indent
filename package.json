@@ -1,6 +1,6 @@
 {
   "name": "@dobadevv/eslint-plugin-go-fmt",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "ESLint rule that enforces gofmt-style column alignment for object literals, classes, interfaces, and type literals",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
