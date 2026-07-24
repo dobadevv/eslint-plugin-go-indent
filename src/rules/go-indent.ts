@@ -23,6 +23,8 @@ function getMembers(node: IndentedContainer): TSESTree.Node[] {
             return node.body;
         case "TSTypeLiteral":
             return node.members;
+        default:
+            throw new Error(`Unexpected container node type: ${(node as { type: string }).type}`);
     }
 }
 
@@ -110,6 +112,7 @@ const rule = createRule<[], MessageIds>({
                 return;
             }
 
+            console.log({ node });
             const openingLine = sourceCode.lines[node.loc.start.line - 1] ?? "";
             const baseIndent = getLeadingWhitespace(openingLine);
             const memberIndent = `${baseIndent}\t`;
