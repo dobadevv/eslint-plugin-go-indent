@@ -110,6 +110,13 @@ function hasBlankLineBetween(
     return false;
 }
 
+function membersShareLine(
+    earlier: TSESTree.Node,
+    later: TSESTree.Node,
+): boolean {
+    return earlier.loc.end.line === later.loc.start.line;
+}
+
 function hasCommentLineBetween(
     earlier: TSESTree.Node,
     later: TSESTree.Node,
@@ -145,7 +152,8 @@ export function splitIntoRuns(
         const previous = current[current.length - 1];
         if (
             previous !== undefined &&
-            (hasBlankLineBetween(previous, member, sourceCode) ||
+            (membersShareLine(previous, member) ||
+                hasBlankLineBetween(previous, member, sourceCode) ||
                 hasCommentLineBetween(previous, member, sourceCode))
         ) {
             flush();

@@ -35,6 +35,11 @@ ruleTester.run("go-indent", rule, {
             code: "interface Config {\n\tport:     number;\n\thostname: string;\n}",
         },
         {
+            name: "single-line object literal with differing key lengths is left alone",
+            code:
+                'const user = { id: "test", username: "test", password: "test", name: "test" };',
+        },
+        {
             name: "two runs split by a blank line, each already aligned to its own width",
             code:
                 "type T = {\n" +
@@ -254,6 +259,17 @@ describe("splitIntoRuns", () => {
             ...noComments,
         };
         expect(splitIntoRuns([a, b], source)).toEqual([[a], [b]]);
+    });
+
+    it("splits a run when two members share the same source line", () => {
+        const a = fakeMember(2, 2);
+        const b = fakeMember(2, 2);
+        const c = fakeMember(3, 3);
+        const source = {
+            lines: ["type X = {", "\ta: string; b: string;", "\tc: string;", "};"],
+            ...noComments,
+        };
+        expect(splitIntoRuns([a, b, c], source)).toEqual([[a], [b, c]]);
     });
 
     it("splits a run at a comment line and drops non-conforming members", () => {
