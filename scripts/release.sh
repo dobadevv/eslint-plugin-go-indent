@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Tag and publish a new release.
 #
-# Usage: pnpm release [patch|minor|major]  (defaults to patch)
+# Usage: pnpm release [patch|minor|major|<version>]  (defaults to patch)
 #
 # What it does:
 #   1. verifies the working tree is clean and on `main`
@@ -15,8 +15,9 @@ bump="${1:-patch}"
 
 case "$bump" in
 	patch | minor | major) ;;
+	[0-9]*.[0-9]*.[0-9]*) ;;
 	*)
-		echo "Usage: pnpm release [patch|minor|major]" >&2
+		echo "Usage: pnpm release [patch|minor|major|<version>]" >&2
 		exit 1
 		;;
 esac
