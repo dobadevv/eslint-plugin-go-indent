@@ -31,6 +31,10 @@ ruleTester.run("go-indent", rule, {
             name: "class expression indented with one tab per level",
             code: "const Server = class {\n\tstart() {}\n};",
         },
+        {
+            name: "interface indented with one tab per level",
+            code: "interface Config {\n\tport: number;\n\thost: string;\n}",
+        },
     ],
     invalid: [
         {
@@ -61,6 +65,12 @@ ruleTester.run("go-indent", rule, {
             name: "class body indented with spaces instead of tabs",
             code: "class Server {\n  start() {}\n}",
             output: "class Server {\n\tstart() {}\n}",
+            errors: [{ messageId: "wrongIndentation", data: { expected: "1" } }],
+        },
+        {
+            name: "interface body indented with spaces instead of tabs",
+            code: "interface Config {\n  port: number;\n}",
+            output: "interface Config {\n\tport: number;\n}",
             errors: [{ messageId: "wrongIndentation", data: { expected: "1" } }],
         },
     ],
