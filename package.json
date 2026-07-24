@@ -1,0 +1,22 @@
+{
+  "name": "eslint-plugin-go-indent",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "@typescript-eslint/parser": "^8.65.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.10"
+  },
+  "dependencies": {
+    "@typescript-eslint/utils": "^8.65.0",
+    "eslint": "^10.7.0"
+  }
+}
