@@ -11,13 +11,13 @@ importers:
       '@typescript-eslint/utils':
         specifier: ^8.65.0
         version: 8.65.0(eslint@10.7.0)(typescript@5.9.3)
-      eslint:
-        specifier: ^10.7.0
-        version: 10.7.0
     devDependencies:
       '@typescript-eslint/parser':
         specifier: ^8.65.0
         version: 8.65.0(eslint@10.7.0)(typescript@5.9.3)
+      eslint:
+        specifier: ^10.7.0
+        version: 10.7.0
       typescript:
         specifier: ^5.9.3
         version: 5.9.3

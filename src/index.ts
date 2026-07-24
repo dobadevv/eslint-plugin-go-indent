@@ -1,7 +1,7 @@
-import rule from "./rules/go-indent.js";
+import rule from "./rules/go-fmt.js";
 
 export default {
     rules: {
-        "go-indent": rule,
+        "go-fmt": rule,
     },
 };

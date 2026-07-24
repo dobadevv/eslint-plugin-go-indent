@@ -10,7 +10,7 @@ type AlignableBody =
     | TSESTree.TSTypeLiteral;
 
 const createRule = ESLintUtils.RuleCreator(
-    (name) => `https://github.com/eslint-plugin-go-indent/rules/${name}`,
+    () => `https://github.com/dobadevv/eslint-plugin-go-fmt#readme`,
 );
 
 export interface MemberCells {
@@ -254,7 +254,7 @@ function getMembers(node: AlignableBody): TSESTree.Node[] {
 }
 
 const rule = createRule<[], MessageIds>({
-    name: "go-indent",
+    name: "go-fmt",
     meta: {
         type: "layout",
         docs: {

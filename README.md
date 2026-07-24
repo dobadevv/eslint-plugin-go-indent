@@ -1,4 +1,4 @@
-# eslint-plugin-go-indent
+# @dobadevv/eslint-plugin-go-fmt
 
 An ESLint plugin that brings gofmt-style column alignment to TypeScript and
 JavaScript: object literals, class bodies, interfaces, and type literals get
@@ -37,9 +37,9 @@ Prettier's way once it has (see [Playing nice with Prettier](#playing-nice-with-
 ## Install
 
 ```sh
-npm install --save-dev eslint-plugin-go-indent
+npm install --save-dev @dobadevv/eslint-plugin-go-fmt
 # or
-pnpm add -D eslint-plugin-go-indent
+pnpm add -D @dobadevv/eslint-plugin-go-fmt
 ```
 
 Requires ESLint 9+ (flat config) and `@typescript-eslint/parser` if you want
@@ -50,7 +50,7 @@ the rule to apply to `.ts`/`.tsx` files.
 Flat config (`eslint.config.js`):
 
 ```js
-import goIndent from "eslint-plugin-go-indent";
+import goFmt from "@dobadevv/eslint-plugin-go-fmt";
 import tsParser from "@typescript-eslint/parser";
 
 export default [
@@ -60,10 +60,10 @@ export default [
 			parser: tsParser,
 		},
 		plugins: {
-			"go-indent": goIndent,
+			"go-fmt": goFmt,
 		},
 		rules: {
-			"go-indent/go-indent": "error",
+			"go-fmt/go-fmt": "error",
 		},
 	},
 ];
@@ -128,3 +128,20 @@ type User = {
 
 That keeps the aligned block stable across both `eslint --fix` and
 `prettier --write`.
+
+## Development
+
+```sh
+pnpm install
+pnpm test    # vitest
+pnpm build   # tsc -p .
+```
+
+## Releasing
+
+```sh
+pnpm release patch   # or: minor | major
+```
+
+This bumps the version, commits and tags it (`vX.Y.Z`), pushes the tag, and
+publishes to npm. See [`scripts/release.sh`](./scripts/release.sh).

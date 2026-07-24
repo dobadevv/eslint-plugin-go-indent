@@ -8,7 +8,7 @@ import rule, {
     isConformingMember,
     computeColumnWidths,
     renderAligned,
-} from "./go-indent.js";
+} from "./go-fmt.js";
 
 RuleTester.describe = describe;
 RuleTester.it = it;
@@ -20,7 +20,7 @@ const ruleTester = new RuleTester({
     },
 });
 
-ruleTester.run("go-indent", rule, {
+ruleTester.run("go-fmt", rule, {
     valid: [
         {
             name: "single-line object literal is left alone",

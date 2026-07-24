@@ -1,7 +1,7 @@
 {
-  "name": "eslint-plugin-go-indent",
+  "name": "@dobadevv/eslint-plugin-go-fmt",
   "version": "1.0.0",
-  "description": "",
+  "description": "ESLint rule that enforces gofmt-style column alignment for object literals, classes, interfaces, and type literals",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -9,19 +9,43 @@
   ],
   "scripts": {
     "build": "tsc -p .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "prepublishOnly": "pnpm test && pnpm build",
+    "release": "bash scripts/release.sh"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "eslint",
+    "eslintplugin",
+    "eslint-plugin",
+    "gofmt",
+    "go",
+    "formatting",
+    "alignment"
+  ],
+  "author": "dobadevv",
   "license": "ISC",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dobadevv/eslint-plugin-go-fmt.git"
+  },
+  "homepage": "https://github.com/dobadevv/eslint-plugin-go-fmt#readme",
+  "bugs": {
+    "url": "https://github.com/dobadevv/eslint-plugin-go-fmt/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "peerDependencies": {
+    "eslint": "^9.0.0 || ^10.0.0"
+  },
   "devDependencies": {
     "@typescript-eslint/parser": "^8.65.0",
+    "eslint": "^10.7.0",
     "typescript": "^5.9.3",
     "vitest": "^4.1.10"
   },
   "dependencies": {
-    "@typescript-eslint/utils": "^8.65.0",
-    "eslint": "^10.7.0"
+    "@typescript-eslint/utils": "^8.65.0"
   }
 }
