@@ -13,6 +13,41 @@ const createRule = ESLintUtils.RuleCreator(
     (name) => `https://github.com/eslint-plugin-go-indent/rules/${name}`,
 );
 
+export interface MemberCells {
+    cells: string[];
+    separators: string[];
+}
+
+export function splitMemberCells(text: string): MemberCells {
+    const colonIndex = text.indexOf(":");
+    const equalsSearchStart = colonIndex === -1 ? 0 : colonIndex + 1;
+    const equalsIndex = text.indexOf("=", equalsSearchStart);
+
+    const boundaries: { index: number; separator: string }[] = [];
+    if (colonIndex !== -1) {
+        boundaries.push({ index: colonIndex, separator: ":" });
+    }
+    if (equalsIndex !== -1) {
+        boundaries.push({ index: equalsIndex, separator: "=" });
+    }
+
+    if (boundaries.length === 0) {
+        return { cells: [text.trim()], separators: [] };
+    }
+
+    const cells: string[] = [];
+    const separators: string[] = [];
+    let cursor = 0;
+    for (const boundary of boundaries) {
+        cells.push(text.slice(cursor, boundary.index).trim());
+        separators.push(boundary.separator);
+        cursor = boundary.index + 1;
+    }
+    cells.push(text.slice(cursor).trim());
+
+    return { cells, separators };
+}
+
 function getMembers(node: AlignableBody): TSESTree.Node[] {
     switch (node.type) {
         case "ObjectExpression":
