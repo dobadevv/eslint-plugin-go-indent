@@ -147,9 +147,12 @@ ruleTester.run("go-indent", rule, {
                 "\tflag;\n" +
                 "\tcount = 0;\n" +
                 "\tid:    string;\n" +
-                "\tsize: number = 10;\n" +
+                "\tsize:  number = 10;\n" +
                 "}",
-            errors: [{ messageId: "misalignedColumn" }],
+            errors: [
+                { messageId: "misalignedColumn" },
+                { messageId: "misalignedColumn" },
+            ],
         },
         {
             name: "= separator gets its own padded column, not glued to the preceding cell",
@@ -164,10 +167,44 @@ ruleTester.run("go-indent", rule, {
                 "class Mixed {\n" +
                 "\tcount        = 0;\n" +
                 "\tsecond_count = 0;\n" +
-                "\tsize:        boolean = true;\n" +
-                "\tsecond_size: number  = 10;\n" +
+                "\tsize:         boolean = true;\n" +
+                "\tsecond_size:  number  = 10;\n" +
                 "}",
             errors: [
+                { messageId: "misalignedColumn" },
+                { messageId: "misalignedColumn" },
+                { messageId: "misalignedColumn" },
+            ],
+        },
+        {
+            name: "optional field's type column stays aligned with a sibling field that has a default value",
+            code:
+                "class CreateUserDto {\n" +
+                "\tid: string;\n" +
+                "\tusername: string;\n" +
+                "\temail: string;\n" +
+                "\tpassword: string;\n" +
+                "\tdisplayName?: string;\n" +
+                "\tavatarUrl?: string;\n" +
+                "\tisActive: boolean = true;\n" +
+                "\trole: string = 'member';\n" +
+                "}",
+            output:
+                "class CreateUserDto {\n" +
+                "\tid:           string;\n" +
+                "\tusername:     string;\n" +
+                "\temail:        string;\n" +
+                "\tpassword:     string;\n" +
+                "\tdisplayName?: string;\n" +
+                "\tavatarUrl?:   string;\n" +
+                "\tisActive:     boolean = true;\n" +
+                "\trole:         string  = 'member';\n" +
+                "}",
+            errors: [
+                { messageId: "misalignedColumn" },
+                { messageId: "misalignedColumn" },
+                { messageId: "misalignedColumn" },
+                { messageId: "misalignedColumn" },
                 { messageId: "misalignedColumn" },
                 { messageId: "misalignedColumn" },
                 { messageId: "misalignedColumn" },
@@ -365,12 +402,29 @@ describe("renderAligned", () => {
         const widths = ["second_count".length, "boolean".length];
         expect(
             renderAligned(splitMemberCells("size: boolean = true;"), widths),
-        ).toBe("size:        boolean = true;");
+        ).toBe("size:         boolean = true;");
         expect(
             renderAligned(
                 splitMemberCells("second_size: number = 10;"),
                 widths,
             ),
-        ).toBe("second_size: number  = 10;");
+        ).toBe("second_size:  number  = 10;");
+    });
+
+    it("starts the type column at the same offset whether or not the row has a default value", () => {
+        const widths = ["displayName?".length, "boolean".length];
+        const plain = renderAligned(splitMemberCells("id: string;"), widths);
+        const withDefault = renderAligned(
+            splitMemberCells("isActive: boolean = true;"),
+            widths,
+        );
+        const typeColumn = (rendered: string): number => {
+            const colonIndex = rendered.indexOf(":");
+            const afterColon = rendered.slice(colonIndex + 1);
+            const leadingSpaces = afterColon.length - afterColon.trimStart().length;
+            return colonIndex + 1 + leadingSpaces;
+        };
+
+        expect(typeColumn(withDefault)).toBe(typeColumn(plain));
     });
 });
