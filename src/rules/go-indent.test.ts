@@ -35,6 +35,10 @@ ruleTester.run("go-indent", rule, {
             name: "interface indented with one tab per level",
             code: "interface Config {\n\tport: number;\n\thost: string;\n}",
         },
+        {
+            name: "type alias with object literal indented with one tab per level",
+            code: "type Config = {\n\tport: number;\n\thost: string;\n};",
+        },
     ],
     invalid: [
         {
@@ -71,6 +75,12 @@ ruleTester.run("go-indent", rule, {
             name: "interface body indented with spaces instead of tabs",
             code: "interface Config {\n  port: number;\n}",
             output: "interface Config {\n\tport: number;\n}",
+            errors: [{ messageId: "wrongIndentation", data: { expected: "1" } }],
+        },
+        {
+            name: "type alias object literal indented with spaces instead of tabs",
+            code: "type Config = {\n  port: number;\n};",
+            output: "type Config = {\n\tport: number;\n};",
             errors: [{ messageId: "wrongIndentation", data: { expected: "1" } }],
         },
     ],
