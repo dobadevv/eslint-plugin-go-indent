@@ -34,6 +34,17 @@ ruleTester.run("go-indent", rule, {
             name: "aligned interface run is valid",
             code: "interface Config {\n\tport:     number;\n\thostname: string;\n}",
         },
+        {
+            name: "two runs split by a blank line, each already aligned to its own width",
+            code:
+                "type T = {\n" +
+                "\ta:  number;\n" +
+                "\tbb: number;\n" +
+                "\n" +
+                "\tccc:  number;\n" +
+                "\tdddd: number;\n" +
+                "};",
+        },
     ],
     invalid: [
         {
@@ -47,6 +58,75 @@ ruleTester.run("go-indent", rule, {
             code: "const c = {\n\ta: 1,\n\tbbb: 2,\n};",
             output: "const c = {\n\ta:   1,\n\tbbb: 2,\n};",
             errors: [{ messageId: "misalignedColumn" }],
+        },
+        {
+            name: "blank line yields two independently aligned runs",
+            code:
+                "type T = {\n" +
+                "\ta: number;\n" +
+                "\tbb: number;\n" +
+                "\n" +
+                "\tccc: number;\n" +
+                "\tdddd: number;\n" +
+                "};",
+            output:
+                "type T = {\n" +
+                "\ta:  number;\n" +
+                "\tbb: number;\n" +
+                "\n" +
+                "\tccc:  number;\n" +
+                "\tdddd: number;\n" +
+                "};",
+            errors: [
+                { messageId: "misalignedColumn" },
+                { messageId: "misalignedColumn" },
+            ],
+        },
+        {
+            name: "comment line splits a run into two independently aligned runs",
+            code:
+                "interface I {\n" +
+                "\ta: number;\n" +
+                "\tbb: number;\n" +
+                "\t// section\n" +
+                "\tccc: number;\n" +
+                "\tdddd: number;\n" +
+                "}",
+            output:
+                "interface I {\n" +
+                "\ta:  number;\n" +
+                "\tbb: number;\n" +
+                "\t// section\n" +
+                "\tccc:  number;\n" +
+                "\tdddd: number;\n" +
+                "}",
+            errors: [
+                { messageId: "misalignedColumn" },
+                { messageId: "misalignedColumn" },
+            ],
+        },
+        {
+            name: "a method splits a run and is left untouched",
+            code:
+                "class C {\n" +
+                "\ta: number;\n" +
+                "\tbb: number;\n" +
+                "\tgreet() {}\n" +
+                "\tccc: number;\n" +
+                "\tdddd: number;\n" +
+                "}",
+            output:
+                "class C {\n" +
+                "\ta:  number;\n" +
+                "\tbb: number;\n" +
+                "\tgreet() {}\n" +
+                "\tccc:  number;\n" +
+                "\tdddd: number;\n" +
+                "}",
+            errors: [
+                { messageId: "misalignedColumn" },
+                { messageId: "misalignedColumn" },
+            ],
         },
     ],
 });
